@@ -8,5 +8,7 @@ export const API = {
   AUTH_GOOGLE_CALLBACK: '/api/auth/google/callback',
   AUTH_GITHUB_CALLBACK: '/api/auth/github/callback',
   ENTITLEMENTS: '/api/entitlements',
+  USAGE: '/api/usage',
+  AUDIT_LOGS: '/api/audit-logs',
   PAYMENTS_AI: '/api/payments/ai/advise',
 } as const;

@@ -1,3 +1,10 @@
 export const APP_NAME = 'ink-server';
 export const HEALTH_OK = 'ok';
 export const AUTH_PROVIDERS = ['google', 'github', 'password'] as const;
+export const USER_ROLES = ['user', 'admin'] as const;
+export const DEFAULT_COUNTRY = 'IL';
+export const BEARER_PREFIX = 'Bearer ';
+export const OAUTH_GOOGLE_AUTH_URL = 'https://accounts.google.com/o/oauth2/v2/auth';
+export const OAUTH_GITHUB_AUTH_URL = 'https://github.com/login/oauth/authorize';
+export const OAUTH_GOOGLE_SCOPE = 'openid email profile';
+export const OAUTH_GITHUB_SCOPE = 'read:user user:email';

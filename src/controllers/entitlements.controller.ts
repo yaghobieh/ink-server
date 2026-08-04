@@ -1,25 +1,48 @@
+import type { FastifyReply, FastifyRequest } from 'fastify';
+import { insertAuditLog } from '../repositories/audit.repository.js';
 import { findUserByEmail } from '../services/auth.service.js';
-import { User } from '../models/user.model.js';
-import type { InkRequest } from '../types/http.types.js';
+import {
+  buildEntitlements,
+  resolvePlanFromBody,
+  updateUserPlan,
+} from '../services/entitlements.service.js';
+import { getAuthUser } from '../plugins/auth.plugin.js';
 
-export const getEntitlements = async (req: InkRequest) => {
-  const email = typeof req.user?.email === 'string' ? req.user.email : '';
-  if (!email) return { status: 401, body: { error: 'unauthorized' } };
-  const user = await findUserByEmail(email);
-  if (!user) return { status: 404, body: { error: 'not found' } };
-  return {
-    premium: Boolean(user.premium),
-    licenseFeatures: user.premium
-      ? ['theme', 'icons', 'richPaste', 'imageUpload', 'wysiwyg']
-      : [],
-  };
+export const getEntitlements = async (request: FastifyRequest, reply: FastifyReply) => {
+  const auth = getAuthUser(request);
+  if (!auth?.email) return reply.code(401).send({ error: 'unauthorized' });
+  const user = await findUserByEmail(auth.email);
+  if (!user) return reply.code(404).send({ error: 'not found' });
+  return reply.send(buildEntitlements(user));
 };
 
-export const setPremium = async (req: InkRequest) => {
-  const body = (req.body ?? {}) as Record<string, unknown>;
+export const setEntitlements = async (request: FastifyRequest, reply: FastifyReply) => {
+  const body = (request.body ?? {}) as Record<string, unknown>;
   const email = typeof body.email === 'string' ? body.email : '';
-  if (!email) return { status: 400, body: { error: 'email required' } };
-  const premium = Boolean(body.premium);
-  await User.updateOne({ email }, { premium });
-  return { ok: true, email, premium };
+  if (!email) return reply.code(400).send({ error: 'email required' });
+  const plan = resolvePlanFromBody(body);
+  if (!plan) return reply.code(400).send({ error: 'plan or premium required' });
+
+  const user = await findUserByEmail(email);
+  if (!user) return reply.code(404).send({ error: 'not found' });
+
+  await updateUserPlan(user.id, plan);
+  await insertAuditLog({
+    userId: user.id,
+    action: 'entitlements.update',
+    resource: 'plans',
+    metadata: { plan },
+    ipAddress: request.ip ?? null,
+  });
+
+  const updated = await findUserByEmail(email);
+  if (!updated) return reply.code(404).send({ error: 'not found' });
+
+  return reply.send({
+    ok: true,
+    email,
+    plan,
+    premium: plan === 'pro' || plan === 'ai',
+    entitlements: buildEntitlements(updated),
+  });
 };
