@@ -7,7 +7,7 @@ CREATE TABLE IF NOT EXISTS users (
   password_hash TEXT,
   provider TEXT NOT NULL DEFAULT 'password',
   provider_id TEXT,
-  role TEXT NOT NULL DEFAULT 'user' CHECK (role IN ('user', 'admin')),
+  role TEXT NOT NULL DEFAULT 'user' CHECK (role IN ('user', 'admin', 'crm_admin')),
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );

@@ -1,5 +1,6 @@
 import type { FastifyReply, FastifyRequest } from 'fastify';
 import { DEFAULT_AUDIT_LOG_LIMIT, MAX_AUDIT_LOG_LIMIT } from '../const/numbers.const.js';
+import { canManagePlans } from '../const/plans.const.js';
 import { listAuditLogs } from '../repositories/audit.repository.js';
 import { getAuthUser } from '../plugins/auth.plugin.js';
 
@@ -20,7 +21,7 @@ export const getAuditLogs = async (request: FastifyRequest, reply: FastifyReply)
   if (!auth?.userId) return reply.code(401).send({ error: 'unauthorized' });
 
   const query = request.query as Record<string, unknown>;
-  const scopeAll = query.scope === 'all' && auth.role === 'admin';
+  const scopeAll = query.scope === 'all' && canManagePlans(auth.role);
   const limit = parseLimit(query.limit);
   const offset = parseOffset(query.offset);
 

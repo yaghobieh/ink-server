@@ -1,6 +1,6 @@
 import type { InkPlan } from './plan.types.js';
 
-export type UserRole = 'user' | 'admin';
+export type UserRole = 'user' | 'admin' | 'crm_admin';
 
 export type InkUserRecord = {
   id: string;
@@ -18,6 +18,7 @@ export type PublicUser = {
   id: string;
   email: string;
   name: string;
+  role: UserRole;
   plan: InkPlan;
   premium: boolean;
 };

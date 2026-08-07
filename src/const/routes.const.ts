@@ -11,4 +11,5 @@ export const API = {
   USAGE: '/api/usage',
   AUDIT_LOGS: '/api/audit-logs',
   PAYMENTS_AI: '/api/payments/ai/advise',
+  AI_COMPLETE: '/api/ai/complete',
 } as const;

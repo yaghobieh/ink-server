@@ -2,6 +2,7 @@ import type { FastifyInstance } from 'fastify';
 import { API } from '../const/index.js';
 import { authenticate } from '../plugins/auth.plugin.js';
 import {
+  completeAi,
   getAuditLogs,
   getEntitlements,
   getHealth,
@@ -41,4 +42,6 @@ export const registerRoutes = (app: FastifyInstance): void => {
   app.get(API.AUDIT_LOGS, { preHandler: authenticate }, getAuditLogs);
 
   app.post(API.PAYMENTS_AI, advisePayments);
+
+  app.post(API.AI_COMPLETE, { preHandler: authenticate }, completeAi);
 };

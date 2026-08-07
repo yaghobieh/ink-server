@@ -9,7 +9,8 @@
     "build": "tsc -p tsconfig.json",
     "start": "node dist/server.js",
     "typecheck": "tsc -p tsconfig.json --noEmit",
-    "db:init": "psql \"$DATABASE_URL\" -f sql/001_init.sql"
+    "db:init": "psql \"$DATABASE_URL\" -f sql/001_init.sql",
+    "db:migrate": "psql \"$DATABASE_URL\" -f sql/002_crm_admin_role.sql"
   },
   "engines": {
     "node": ">=20"

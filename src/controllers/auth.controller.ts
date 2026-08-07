@@ -1,12 +1,31 @@
 import { createHash, randomBytes, timingSafeEqual } from 'node:crypto';
 import type { FastifyReply, FastifyRequest } from 'fastify';
 import { CONFIG } from '../const/index.js';
-import { OAUTH_STATE_BYTES } from '../const/numbers.const.js';
+import { OAUTH_FETCH_TIMEOUT_MS, OAUTH_STATE_BYTES } from '../const/numbers.const.js';
 import {
+  AUDIT_RESOURCE_AUTH,
+  BEARER_PREFIX,
+  CONTENT_TYPE_FORM_URLENCODED,
+  HEADER_AUTHORIZATION,
+  HEADER_CONTENT_TYPE,
   OAUTH_GITHUB_AUTH_URL,
   OAUTH_GITHUB_SCOPE,
   OAUTH_GOOGLE_AUTH_URL,
   OAUTH_GOOGLE_SCOPE,
+  OAUTH_GOOGLE_TOKEN_URL,
+  OAUTH_GOOGLE_USERINFO_URL,
+  OAUTH_GRANT_TYPE_AUTHORIZATION_CODE,
+  OAUTH_PROVIDER_GITHUB,
+  OAUTH_PROVIDER_GOOGLE,
+  OAUTH_RESPONSE_TYPE_CODE,
+  PORTAL_OAUTH_CALLBACK_PATH,
+  QUERY_PARAM_CODE,
+  QUERY_PARAM_EMAIL,
+  QUERY_PARAM_FORMAT,
+  QUERY_PARAM_ID,
+  QUERY_PARAM_NAME,
+  QUERY_PARAM_TOKEN,
+  RESPONSE_FORMAT_JSON,
 } from '../const/strings.const.js';
 import { insertAuditLog } from '../repositories/audit.repository.js';
 import {
@@ -17,6 +36,8 @@ import {
   registerPasswordUser,
 } from '../services/auth.service.js';
 import { getAuthUser } from '../plugins/auth.plugin.js';
+import type { GoogleTokenResponse, GoogleUserInfo } from '../types/oauth.types.js';
+import type { UserRole } from '../types/user.types.js';
 import { toPublicUser } from '../utils/user.utils.js';
 
 const hashPassword = (password: string): string =>
@@ -39,7 +60,15 @@ const clientIp = (request: FastifyRequest): string | null => {
   return request.ip ?? null;
 };
 
-import type { UserRole } from '../types/user.types.js';
+const googleOAuthConfigured = (): boolean =>
+  Boolean(CONFIG.GOOGLE_CLIENT_ID && CONFIG.GOOGLE_CLIENT_SECRET);
+
+const wantsJsonResponse = (request: FastifyRequest): boolean => {
+  const query = request.query as Record<string, unknown>;
+  if (str(query[QUERY_PARAM_FORMAT]) === RESPONSE_FORMAT_JSON) return true;
+  const accept = request.headers.accept ?? '';
+  return accept.includes('application/json');
+};
 
 const issueToken = async (
   request: FastifyRequest,
@@ -58,10 +87,24 @@ const issueToken = async (
   await insertAuditLog({
     userId,
     action,
-    resource: 'auth',
+    resource: AUDIT_RESOURCE_AUTH,
     ipAddress: clientIp(request),
   });
   return token;
+};
+
+const redirectOrJson = (
+  request: FastifyRequest,
+  reply: FastifyReply,
+  token: string,
+  user: ReturnType<typeof toPublicUser>,
+) => {
+  if (wantsJsonResponse(request)) {
+    return reply.send({ user, token });
+  }
+  const portalUrl = new URL(PORTAL_OAUTH_CALLBACK_PATH, CONFIG.CORS_ORIGIN);
+  portalUrl.searchParams.set(QUERY_PARAM_TOKEN, token);
+  return reply.redirect(portalUrl.toString());
 };
 
 export const register = async (request: FastifyRequest, reply: FastifyReply) => {
@@ -112,10 +155,10 @@ export const startGoogleOAuth = async (_request: FastifyRequest, reply: FastifyR
   const url = new URL(OAUTH_GOOGLE_AUTH_URL);
   url.searchParams.set('client_id', CONFIG.GOOGLE_CLIENT_ID);
   url.searchParams.set('redirect_uri', `${CONFIG.OAUTH_CALLBACK_BASE}/api/auth/google/callback`);
-  url.searchParams.set('response_type', 'code');
+  url.searchParams.set('response_type', OAUTH_RESPONSE_TYPE_CODE);
   url.searchParams.set('scope', OAUTH_GOOGLE_SCOPE);
   url.searchParams.set('state', state);
-  return reply.send({ url: url.toString(), state, stub: !CONFIG.GOOGLE_CLIENT_ID });
+  return reply.send({ url: url.toString(), state, stub: !googleOAuthConfigured() });
 };
 
 export const startGithubOAuth = async (_request: FastifyRequest, reply: FastifyReply) => {
@@ -131,12 +174,12 @@ export const startGithubOAuth = async (_request: FastifyRequest, reply: FastifyR
 const oauthCallbackStub = async (
   request: FastifyRequest,
   reply: FastifyReply,
-  provider: 'google' | 'github',
+  provider: typeof OAUTH_PROVIDER_GOOGLE | typeof OAUTH_PROVIDER_GITHUB,
 ) => {
   const query = request.query as Record<string, unknown>;
-  const email = str(query.email) || `${provider}-user@inkforgejs.com`;
-  const name = str(query.name) || `${provider} user`;
-  const providerId = str(query.id) || `${provider}-dev`;
+  const email = str(query[QUERY_PARAM_EMAIL]) || `${provider}-user@inkforgejs.com`;
+  const name = str(query[QUERY_PARAM_NAME]) || `${provider} user`;
+  const providerId = str(query[QUERY_PARAM_ID]) || `${provider}-dev`;
   const user = await findOrCreateOAuthUser({ email, name, provider, providerId });
   const token = await issueToken(
     request,
@@ -153,8 +196,82 @@ const oauthCallbackStub = async (
   });
 };
 
-export const googleCallback = async (request: FastifyRequest, reply: FastifyReply) =>
-  oauthCallbackStub(request, reply, 'google');
+const exchangeGoogleCode = async (code: string): Promise<GoogleTokenResponse> => {
+  const body = new URLSearchParams({
+    code,
+    client_id: CONFIG.GOOGLE_CLIENT_ID,
+    client_secret: CONFIG.GOOGLE_CLIENT_SECRET,
+    redirect_uri: `${CONFIG.OAUTH_CALLBACK_BASE}/api/auth/google/callback`,
+    grant_type: OAUTH_GRANT_TYPE_AUTHORIZATION_CODE,
+  });
+  const response = await fetch(OAUTH_GOOGLE_TOKEN_URL, {
+    method: 'POST',
+    headers: {
+      [HEADER_CONTENT_TYPE]: CONTENT_TYPE_FORM_URLENCODED,
+    },
+    body: body.toString(),
+    signal: AbortSignal.timeout(OAUTH_FETCH_TIMEOUT_MS),
+  });
+  return (await response.json()) as GoogleTokenResponse;
+};
+
+const fetchGoogleUserInfo = async (accessToken: string): Promise<GoogleUserInfo> => {
+  const response = await fetch(OAUTH_GOOGLE_USERINFO_URL, {
+    headers: {
+      [HEADER_AUTHORIZATION]: `${BEARER_PREFIX}${accessToken}`,
+    },
+    signal: AbortSignal.timeout(OAUTH_FETCH_TIMEOUT_MS),
+  });
+  return (await response.json()) as GoogleUserInfo;
+};
+
+export const googleCallback = async (request: FastifyRequest, reply: FastifyReply) => {
+  if (!googleOAuthConfigured()) {
+    return oauthCallbackStub(request, reply, OAUTH_PROVIDER_GOOGLE);
+  }
+
+  const query = request.query as Record<string, unknown>;
+  const code = str(query[QUERY_PARAM_CODE]);
+  if (!code) {
+    return reply.code(400).send({ error: 'code required' });
+  }
+
+  try {
+    const tokenResponse = await exchangeGoogleCode(code);
+    if (!tokenResponse.access_token) {
+      return reply.code(401).send({
+        error: 'google token exchange failed',
+        details: tokenResponse.error_description ?? tokenResponse.error ?? null,
+      });
+    }
+
+    const profile = await fetchGoogleUserInfo(tokenResponse.access_token);
+    const email = str(profile.email);
+    const providerId = str(profile.sub);
+    if (!email || !providerId) {
+      return reply.code(401).send({ error: 'google userinfo missing email or sub' });
+    }
+
+    const name = str(profile.name) || email;
+    const user = await findOrCreateOAuthUser({
+      email,
+      name,
+      provider: OAUTH_PROVIDER_GOOGLE,
+      providerId,
+    });
+    const token = await issueToken(
+      request,
+      reply,
+      user.id,
+      user.email,
+      user.role,
+      `auth.oauth.${OAUTH_PROVIDER_GOOGLE}`,
+    );
+    return redirectOrJson(request, reply, token, toPublicUser(user));
+  } catch {
+    return reply.code(502).send({ error: 'google oauth request failed' });
+  }
+};
 
 export const githubCallback = async (request: FastifyRequest, reply: FastifyReply) =>
-  oauthCallbackStub(request, reply, 'github');
+  oauthCallbackStub(request, reply, OAUTH_PROVIDER_GITHUB);
