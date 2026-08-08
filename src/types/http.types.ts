@@ -1,16 +1,10 @@
-import type { HarborRequest } from '@forgedevstack/harbor';
+import type { FastifyRequest } from 'fastify';
+import type { AuthTokenPayload } from './user.types.js';
 
-export type InkRequest = HarborRequest & {
-  user?: { userId?: string; email?: string; role?: string };
+export type InkRequest = FastifyRequest & {
+  inkUser?: AuthTokenPayload;
 };
 
-export type InkUserRecord = {
-  _id: unknown;
-  email: string;
-  name: string;
-  passwordHash?: string;
-  role?: string;
-  premium?: boolean;
-  provider?: string;
-  providerId?: string;
+export type ErrorBody = {
+  error: string;
 };

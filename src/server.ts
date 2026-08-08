@@ -1,30 +1,33 @@
-import { createServer, connect, httpLogger } from '@forgedevstack/harbor';
+import type { IncomingMessage, ServerResponse } from 'node:http';
 import { CONFIG } from './const/index.js';
-import {
-  authRoutes,
-  entitlementsRoutes,
-  healthRoutes,
-  paymentsRoutes,
-} from './routes/index.js';
+import { buildApp } from './app.js';
 
-async function bootstrap() {
-  await connect(CONFIG.MONGODB_URI);
-  console.log('Connected to MongoDB');
+let appInstance: Awaited<ReturnType<typeof buildApp>> | null = null;
 
-  const server = createServer({
-    port: CONFIG.PORT,
-  });
+const getApp = async () => {
+  if (!appInstance) {
+    appInstance = await buildApp();
+    await appInstance.ready();
+  }
+  return appInstance;
+};
 
-  server.app.use(httpLogger());
-  server.app.use(healthRoutes);
-  server.app.use(authRoutes);
-  server.app.use(entitlementsRoutes);
-  server.app.use(paymentsRoutes);
+const isDirectRun = process.argv[1]?.includes('server');
 
-  console.log(`ink-server listening on http://localhost:${CONFIG.PORT}`);
+if (isDirectRun) {
+  getApp()
+    .then((app) =>
+      app.listen({ port: CONFIG.PORT, host: '0.0.0.0' }).then(() => {
+        console.log(`ink-server listening on http://localhost:${CONFIG.PORT}`);
+      }),
+    )
+    .catch((error) => {
+      console.error(error);
+      process.exit(1);
+    });
 }
 
-bootstrap().catch((error) => {
-  console.error(error);
-  process.exit(1);
-});
+export default async function handler(req: IncomingMessage, res: ServerResponse) {
+  const app = await getApp();
+  app.server.emit('request', req, res);
+}
