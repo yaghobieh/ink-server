@@ -9,7 +9,7 @@ export const buildApp = async () => {
   const app = Fastify({ logger: true });
 
   await app.register(cors, {
-    origin: CONFIG.CORS_ORIGIN,
+    origin: CONFIG.CORS_ORIGINS,
     credentials: true,
   });
 
