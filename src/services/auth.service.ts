@@ -1,13 +1,13 @@
-import { JWT } from '@forgedevstack/harbor';
-import { CONFIG } from '../const/index.js';
+import {
+  createOAuthUser,
+  createPasswordUser,
+  createSession,
+  findUserByEmail,
+  findUserByProvider,
+  linkOAuthProvider,
+} from '../repositories/user.repository.js';
 import { JWT_EXPIRES_IN_SEC } from '../const/numbers.const.js';
-import { User } from '../models/user.model.js';
-import type { InkUserRecord } from '../types/http.types.js';
-
-const jwt = new JWT({
-  secret: CONFIG.JWT_SECRET,
-  expiresIn: JWT_EXPIRES_IN_SEC,
-});
+import type { InkUserRecord } from '../types/user.types.js';
 
 export type AuthTokenPayload = {
   userId: string;
@@ -15,15 +15,8 @@ export type AuthTokenPayload = {
   role: string;
 };
 
-export const signAuthToken = (payload: AuthTokenPayload): string => jwt.sign(payload);
-
-export const verifyAuthToken = (token: string): AuthTokenPayload =>
-  jwt.verify(token) as AuthTokenPayload;
-
-const asUser = (doc: unknown): InkUserRecord | null => {
-  if (!doc || Array.isArray(doc)) return null;
-  return doc as InkUserRecord;
-};
+export const buildSessionExpiry = (): Date =>
+  new Date(Date.now() + JWT_EXPIRES_IN_SEC * 1000);
 
 export const findOrCreateOAuthUser = async (input: {
   email: string;
@@ -31,32 +24,21 @@ export const findOrCreateOAuthUser = async (input: {
   provider: 'google' | 'github';
   providerId: string;
 }): Promise<InkUserRecord> => {
-  const existing = asUser(
-    await User.findOne({
-      provider: input.provider,
-      providerId: input.providerId,
-    }),
-  );
+  const existing = await findUserByProvider(input.provider, input.providerId);
   if (existing) return existing;
 
-  const byEmail = asUser(await User.findOne({ email: input.email }));
+  const byEmail = await findUserByEmail(input.email);
   if (byEmail) {
-    await User.updateOne(
-      { _id: byEmail._id },
-      { provider: input.provider, providerId: input.providerId },
-    );
-    return asUser(await User.findOne({ _id: byEmail._id })) ?? byEmail;
+    await linkOAuthProvider(byEmail.id, input.provider, input.providerId);
+    return (await findUserByEmail(input.email)) ?? byEmail;
   }
 
-  return asUser(
-    await User.create({
-      email: input.email,
-      name: input.name,
-      provider: input.provider,
-      providerId: input.providerId,
-      premium: false,
-    }),
-  ) as InkUserRecord;
+  return createOAuthUser({
+    email: input.email,
+    name: input.name,
+    provider: input.provider,
+    providerId: input.providerId,
+  });
 };
 
 export const registerPasswordUser = async (input: {
@@ -64,15 +46,8 @@ export const registerPasswordUser = async (input: {
   name: string;
   passwordHash: string;
 }): Promise<InkUserRecord> =>
-  asUser(
-    await User.create({
-      email: input.email,
-      name: input.name,
-      passwordHash: input.passwordHash,
-      provider: 'password',
-      premium: false,
-    }),
-  ) as InkUserRecord;
+  createPasswordUser(input);
 
-export const findUserByEmail = async (email: string): Promise<InkUserRecord | null> =>
-  asUser(await User.findOne({ email }));
+export { createSession, findUserByEmail, findUserByProvider };
+
+export type { InkUserRecord };
