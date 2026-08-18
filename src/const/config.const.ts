@@ -8,7 +8,7 @@ const splitOrigins = (value: string): string[] =>
     .filter(Boolean);
 
 const DEFAULT_CORS =
-  'http://localhost:5173,https://inkforgejs.com,https://cms.inkforgejs.com';
+  'http://localhost:5173,http://localhost:5180,https://inkforgejs.com,https://cms.inkforgejs.com';
 
 export const CONFIG = {
   PORT: Number(process.env.PORT ?? DEFAULT_PORT),
@@ -30,4 +30,5 @@ export const CONFIG = {
   SEED_ADMIN_USERNAME: process.env.SEED_ADMIN_USERNAME ?? 'yaghobieh',
   SEED_ADMIN_PASSWORD: process.env.SEED_ADMIN_PASSWORD ?? 'admin123',
   SEED_ADMIN_EMAIL: process.env.SEED_ADMIN_EMAIL ?? 'yaghobieh@ink.local',
+  SEED_ADMIN_NAME: process.env.SEED_ADMIN_NAME ?? 'Yaghobieh',
 } as const;

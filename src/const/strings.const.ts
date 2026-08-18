@@ -38,3 +38,7 @@ export const LICENSE_FEATURE_IMAGE_UPLOAD = 'imageUpload';
 export const LICENSE_FEATURE_WYSIWYG = 'wysiwyg';
 export const LICENSE_FEATURE_BYO_AI = 'byoAi';
 export const LICENSE_FEATURE_BUILT_IN_AI = 'builtInAi';
+export const LICENSE_FEATURE_SEO = 'seo';
+export const LICENSE_FEATURE_TEMPLATES = 'templates';
+export const LICENSE_FEATURE_MULTISITE = 'multisite';
+export const LICENSE_FEATURE_CMS_AI = 'cmsAi';

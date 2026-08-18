@@ -1,5 +1,6 @@
 import type { FastifyReply, FastifyRequest } from 'fastify';
 import { CONFIG } from '../const/index.js';
+import { DB_DRIVER } from '../const/install.const.js';
 import { getAuthUser } from '../plugins/auth.plugin.js';
 import {
   countCmsPagesByStatus,
@@ -7,9 +8,12 @@ import {
   listCmsPages,
   updateCmsPage,
 } from '../repositories/cms.repository.js';
+import { countContentStats, countContentWeekly } from '../repositories/content.repository.js';
+import { countMedia } from '../repositories/media.repository.js';
 import { getUsageForUser } from '../repositories/usage.repository.js';
 import { findUserByEmail } from '../services/auth.service.js';
 import type { CmsPageStatus } from '../types/cms.types.js';
+import { listDatabaseTables } from '../utils/dbSchema.utils.js';
 import { toPublicUser, userCanManagePlans } from '../utils/user.utils.js';
 
 const SLUG_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
@@ -21,41 +25,67 @@ export const getCmsDashboard = async (request: FastifyRequest, reply: FastifyRep
   const user = await findUserByEmail(auth.email);
   if (!user) return reply.code(404).send({ error: 'not found' });
 
-  const [usage, pages] = await Promise.all([
+  const [usage, pages, content, weekly, mediaCount, tables] = await Promise.all([
     getUsageForUser(user.id, user.plan),
     countCmsPagesByStatus(),
+    countContentStats(),
+    countContentWeekly(),
+    countMedia(),
+    listDatabaseTables(DB_DRIVER.POSTGRES, CONFIG.DATABASE_URL),
   ]);
 
   const tokensUsed = usage.tokensUsed;
   const tokensLimit = usage.tokensLimit || 1;
   const usageRate = Math.round((tokensUsed / tokensLimit) * 1000) / 10;
+  const documents = content.docs;
+  const published = content.published;
+  const drafts = content.draft;
+  const templates = content.templates;
+  const tablesCount = tables.length;
+  const draftRate =
+    content.total > 0 ? Math.round((drafts / content.total) * 1000) / 10 : 0;
 
   return reply.send({
     user: toPublicUser(user),
     usage,
     pages,
     analytics: {
-      pageViews: pages.total * 120 + 8450,
-      pageViewsDelta: 15.8,
-      totalRevenue: 363.95,
-      revenueDelta: -34.0,
-      bounceRate: 86.5,
-      bounceDelta: -24.2,
-      subscribers: 24473,
-      subscribersDelta: 8.3,
+      documents,
+      published,
+      drafts,
+      templates,
+      media: mediaCount,
+      tables: tablesCount,
+      tokensUsed,
+      tokensLimit,
+      documentsDelta: 0,
+      publishedDelta: 0,
+      draftsDelta: 0,
+      pageViews: documents,
+      pageViewsDelta: 0,
+      totalRevenue: published,
+      revenueDelta: 0,
+      bounceRate: draftRate,
+      bounceDelta: 0,
+      subscribers: mediaCount,
+      subscribersDelta: 0,
       usageRate,
-      salesOverview: 9257.51,
-      weekly: [42, 68, 91, 55, 74, 63, 48],
-      distribution: [
-        { label: 'Website', value: 374.82 },
-        { label: 'Mobile App', value: 241.6 },
-        { label: 'Other', value: 213.42 },
-      ],
-      integrations: [
-        { id: 'stripe', application: 'Stripe', type: 'Finance', rate: 40, profit: 650 },
-        { id: 'zapier', application: 'Zapier', type: 'CRM', rate: 80, profit: 720.5 },
-        { id: 'shopify', application: 'Shopify', type: 'Marketplace', rate: 20, profit: 432.25 },
-      ],
+      salesOverview: templates,
+      weekly,
+      distribution: content.collections.map((collection) => ({
+        label: collection.name,
+        value: collection.count,
+      })),
+      integrations: content.collections.map((collection) => ({
+        id: collection.name,
+        application: collection.name,
+        type: `${collection.published} published`,
+        rate:
+          collection.count > 0
+            ? Math.round((collection.published / collection.count) * 100)
+            : 0,
+        profit: collection.count,
+      })),
     },
     host: {
       apiBase: CONFIG.PUBLIC_API_BASE,

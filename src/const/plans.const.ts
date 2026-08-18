@@ -2,9 +2,13 @@ import { AI_PLAN_MONTHLY_TOKEN_LIMIT } from './numbers.const.js';
 import {
   LICENSE_FEATURE_BUILT_IN_AI,
   LICENSE_FEATURE_BYO_AI,
+  LICENSE_FEATURE_CMS_AI,
   LICENSE_FEATURE_ICONS,
   LICENSE_FEATURE_IMAGE_UPLOAD,
+  LICENSE_FEATURE_MULTISITE,
   LICENSE_FEATURE_RICH_PASTE,
+  LICENSE_FEATURE_SEO,
+  LICENSE_FEATURE_TEMPLATES,
   LICENSE_FEATURE_THEME,
   LICENSE_FEATURE_WYSIWYG,
   ROLE_ADMIN,
@@ -26,6 +30,8 @@ export const PLAN_LICENSE_FEATURES: Record<InkPlan, string[]> = {
     LICENSE_FEATURE_IMAGE_UPLOAD,
     LICENSE_FEATURE_WYSIWYG,
     LICENSE_FEATURE_BYO_AI,
+    LICENSE_FEATURE_SEO,
+    LICENSE_FEATURE_TEMPLATES,
   ],
   ai: [
     LICENSE_FEATURE_THEME,
@@ -35,7 +41,17 @@ export const PLAN_LICENSE_FEATURES: Record<InkPlan, string[]> = {
     LICENSE_FEATURE_WYSIWYG,
     LICENSE_FEATURE_BYO_AI,
     LICENSE_FEATURE_BUILT_IN_AI,
+    LICENSE_FEATURE_SEO,
+    LICENSE_FEATURE_TEMPLATES,
+    LICENSE_FEATURE_MULTISITE,
+    LICENSE_FEATURE_CMS_AI,
   ],
+};
+
+export const PLAN_SITES_LIMIT: Record<InkPlan, number> = {
+  free: 1,
+  pro: 1,
+  ai: 5,
 };
 
 export const PLAN_MONTHLY_TOKEN_LIMIT: Record<InkPlan, number> = {
@@ -58,6 +74,7 @@ export const PLAN_CAPABILITIES: Record<InkPlan, PlanCapability> = {
     monthlyTokenLimit: PLAN_MONTHLY_TOKEN_LIMIT.free,
     licenseFeatures: PLAN_LICENSE_FEATURES.free,
     manageByRoles: [ROLE_ADMIN, ROLE_CRM_ADMIN],
+    sitesLimit: PLAN_SITES_LIMIT.free,
   },
   pro: {
     plan: 'pro',
@@ -66,6 +83,7 @@ export const PLAN_CAPABILITIES: Record<InkPlan, PlanCapability> = {
     monthlyTokenLimit: PLAN_MONTHLY_TOKEN_LIMIT.pro,
     licenseFeatures: PLAN_LICENSE_FEATURES.pro,
     manageByRoles: [ROLE_ADMIN, ROLE_CRM_ADMIN],
+    sitesLimit: PLAN_SITES_LIMIT.pro,
   },
   ai: {
     plan: 'ai',
@@ -74,6 +92,7 @@ export const PLAN_CAPABILITIES: Record<InkPlan, PlanCapability> = {
     monthlyTokenLimit: PLAN_MONTHLY_TOKEN_LIMIT.ai,
     licenseFeatures: PLAN_LICENSE_FEATURES.ai,
     manageByRoles: [ROLE_ADMIN, ROLE_CRM_ADMIN],
+    sitesLimit: PLAN_SITES_LIMIT.ai,
   },
 };
 

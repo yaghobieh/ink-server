@@ -10,7 +10,7 @@
     "start": "node dist/server.js",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "db:init": "psql \"$DATABASE_URL\" -f sql/001_init.sql",
-    "db:migrate": "psql \"$DATABASE_URL\" -f sql/002_crm_admin_role.sql && psql \"$DATABASE_URL\" -f sql/003_username_and_seed.sql && psql \"$DATABASE_URL\" -f sql/004_cms_pages.sql && psql \"$DATABASE_URL\" -f sql/005_cms_content_media.sql",
+    "db:migrate": "psql \"$DATABASE_URL\" -f sql/002_crm_admin_role.sql && psql \"$DATABASE_URL\" -f sql/003_username_and_seed.sql && psql \"$DATABASE_URL\" -f sql/004_cms_pages.sql && psql \"$DATABASE_URL\" -f sql/005_cms_content_media.sql && psql \"$DATABASE_URL\" -f sql/006_cms_crew.sql",
     "db:migrate:cms": "tsx src/scripts/migrateCms.ts",
     "db:migrate:content": "tsx src/scripts/migrateContent.ts",
     "db:seed": "tsx src/scripts/seedAdmin.ts",

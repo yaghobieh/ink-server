@@ -16,10 +16,20 @@ import {
   getPublicDocBySlug,
   getPublicDocs,
   getUsage,
+  getInstallStatusHandler,
+  getPages,
+  getCmsRoles,
+  getCmsUsers,
   patchCmsPlan,
+  patchCmsRole,
   postCmsContent,
+  postCmsRole,
+  postCmsUser,
   postCmsMedia,
   postCmsPage,
+  postInstall,
+  postPages,
+  deletePages,
   postUsage,
   putCmsPage,
   setEntitlements,
@@ -40,6 +50,16 @@ export const registerRoutes = (app: FastifyInstance): void => {
 
   app.get(API.PUBLIC_DOCS, getPublicDocs);
   app.get(API.PUBLIC_DOCS_SLUG, getPublicDocBySlug);
+
+  app.get(API.PAGES, getPages);
+  app.get(API.PAGES_ALIAS, getPages);
+  app.post(API.PAGES, { preHandler: authenticate }, postPages);
+  app.post(API.PAGES_ALIAS, { preHandler: authenticate }, postPages);
+  app.delete(API.PAGES, { preHandler: authenticate }, deletePages);
+  app.delete(API.PAGES_ALIAS, { preHandler: authenticate }, deletePages);
+
+  app.post(API.INSTALL, postInstall);
+  app.get(API.INSTALL_STATUS, getInstallStatusHandler);
 
   app.post(API.AUTH_REGISTER, register);
   app.post(API.AUTH_LOGIN, login);
@@ -70,6 +90,11 @@ export const registerRoutes = (app: FastifyInstance): void => {
   app.post(API.CMS_MEDIA, { preHandler: authenticate }, postCmsMedia);
   app.get(API.CMS_PLANS, { preHandler: authenticate }, getCmsPlans);
   app.patch(API.CMS_PLANS, { preHandler: authenticate }, patchCmsPlan);
+  app.get(API.CMS_USERS, { preHandler: authenticate }, getCmsUsers);
+  app.post(API.CMS_USERS, { preHandler: authenticate }, postCmsUser);
+  app.get(API.CMS_ROLES, { preHandler: authenticate }, getCmsRoles);
+  app.post(API.CMS_ROLES, { preHandler: authenticate }, postCmsRole);
+  app.patch(API.CMS_ROLE, { preHandler: authenticate }, patchCmsRole);
 
   app.post(API.PAYMENTS_AI, advisePayments);
 

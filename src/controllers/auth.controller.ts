@@ -113,6 +113,7 @@ export const register = async (request: FastifyRequest, reply: FastifyReply) => 
   const email = str(body.email);
   const name = str(body.name);
   const password = str(body.password);
+  const username = str(body.username);
   if (!email || !name || !password) {
     return reply.code(400).send({ error: 'email, name, password required' });
   }
@@ -122,6 +123,7 @@ export const register = async (request: FastifyRequest, reply: FastifyReply) => 
   const user = await registerPasswordUser({
     email,
     name,
+    username: username || undefined,
     passwordHash: hashPassword(password),
   });
   const token = await issueToken(request, reply, user.id, user.email, user.role, 'auth.register');

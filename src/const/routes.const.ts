@@ -20,6 +20,13 @@ export const API = {
   CMS_MEDIA: '/api/cms/media',
   CMS_MEDIA_SIGN: '/api/cms/media/sign',
   CMS_PLANS: '/api/cms/plans',
+  CMS_USERS: '/api/cms/users',
+  CMS_ROLES: '/api/cms/roles',
+  CMS_ROLE: '/api/cms/roles/:id',
   PUBLIC_DOCS: '/api/public/docs',
   PUBLIC_DOCS_SLUG: '/api/public/docs/:slug',
+  PAGES: '/api/pages',
+  PAGES_ALIAS: '/pages',
+  INSTALL: '/api/install',
+  INSTALL_STATUS: '/api/install/status',
 } as const;

@@ -2,6 +2,7 @@ export type DocsSeedBlock =
   | { type: 'p'; text: string }
   | { type: 'code'; code: string; language?: 'tsx' | 'html' | 'json' | 'bash' }
   | { type: 'html'; html: string }
+  | { type: 'image'; src: string; alt?: string }
   | { type: 'steps'; title?: string; items: { title: string; body: string }[] }
   | {
       type: 'demo';
@@ -62,6 +63,10 @@ const blocksToSections = (title: string, blocks: DocsSeedBlock[]): DocsSeedSecti
     }
     if (block.type === 'html') {
       sections.push({ type: 'html', html: block.html });
+      continue;
+    }
+    if (block.type === 'image') {
+      sections.push({ type: 'image', src: block.src, alt: block.alt });
       continue;
     }
     if (block.type === 'demo') {
@@ -384,6 +389,11 @@ import '@forgedevstack/ink/styles.css';`,
 
   page('toolbar', 'Toolbar', 'tocToolbar', [
     {
+      type: 'image',
+      src: '/docs/toolbar.svg',
+      alt: 'Toolbar presets and format controls',
+    },
+    {
       type: 'p',
       text: 'The toolbar is an ordered array of ToolbarOption strings. Order is layout; omitting an option hides it even when the matching feature flag is on. Presets (INK_DEFAULT_TOOLBAR, INK_SIMPLE_TOOLBAR, INK_COLLAB_TOOLBAR) cover common product shapes.',
     },
@@ -544,10 +554,72 @@ toolbar={INK_COLLAB_TOOLBAR}`,
     { title: 'Clear', body: 'clearInkMemory(memoryKey) from @forgedevstack/ink utils.' },
   ]),
 
-  placeholder('find-replace', 'Find & replace', 'tocFindReplace', 'Find and replace walks text nodes only — attribute values and class names stay untouched.', [
-    { title: 'Open panel', body: 'Toolbar findReplace or findReplaceDropdown.' },
-    { title: 'Replace one / all', body: 'Runs replaceInHtml under the hood.' },
-    { title: 'Verify', body: 'Markup attributes remain while text updates.' },
+  page('find-replace', 'Find & replace', 'tocFindReplace', [
+    {
+      type: 'image',
+      src: '/docs/find-replace.svg',
+      alt: 'Find and replace across the document',
+    },
+    {
+      type: 'p',
+      text: 'Find and replace walks text nodes only — attribute values and class names stay untouched. Use the toolbar findReplace control (or findReplaceDropdown in 1.1.4+) to open the panel, then replace one match or all.',
+    },
+    {
+      type: 'steps',
+      title: 'What you get',
+      items: [
+        {
+          title: 'Open panel',
+          body: 'Toolbar findReplace or findReplaceDropdown.',
+        },
+        {
+          title: 'Replace one / all',
+          body: 'Runs replaceInHtml under the hood.',
+        },
+        {
+          title: 'Verify',
+          body: 'Markup attributes remain while text updates.',
+        },
+      ],
+    },
+    {
+      type: 'demo',
+      id: 'find-replace-live',
+      title: 'Find & replace',
+      description:
+        'Open find/replace from the toolbar. Only text nodes change — class="find-me" stays intact.',
+      initialHtml: '<p class="find-me">find me once, find me twice</p>',
+      code: `<InkEditor
+  value={html}
+  onChange={setHtml}
+  features={{ findReplace: true }}
+  toolbar={['findReplace', 'bold', 'italic']}
+/>`,
+      editor: {
+        features: { findReplace: true },
+        toolbar: ['findReplace', 'bold', 'italic'],
+      },
+      payload: {
+        label: 'replaceInHtml(html, find, replace, replaceAll)',
+        data: {
+          find: 'find',
+          replace: 'seek',
+          replaceAll: true,
+          preservesAttributes: true,
+        },
+      },
+      showLiveHtml: true,
+    },
+    {
+      type: 'code',
+      language: 'tsx',
+      code: `features={{ findReplace: true }}
+toolbar={['findReplace', 'bold', 'italic']}
+
+// Helper (same pipeline as the panel)
+import { replaceInHtml } from '@forgedevstack/ink';
+const next = replaceInHtml(html, 'find', 'seek', true);`,
+    },
   ]),
 
   placeholder('themes', 'Themes', 'tocThemes', 'Theming is CSS-variable driven on .Ink-Editor. Helper classes swap presets; Premium unlocks theme={{ … }} token overrides.', [

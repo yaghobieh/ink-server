@@ -46,6 +46,7 @@ export const registerPasswordUser = async (input: {
   email: string;
   name: string;
   passwordHash: string;
+  username?: string;
 }): Promise<InkUserRecord> =>
   createPasswordUser(input);
 

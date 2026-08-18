@@ -9,6 +9,7 @@ export type PlanCapability = {
   monthlyTokenLimit: number;
   licenseFeatures: string[];
   manageByRoles: string[];
+  sitesLimit: number;
 };
 
 export type EntitlementsResponse = {

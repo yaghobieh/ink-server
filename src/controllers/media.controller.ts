@@ -15,7 +15,18 @@ export const getCmsMedia = async (request: FastifyRequest, reply: FastifyReply) 
     const local = await listMedia();
     if (local.length > 0) return reply.send({ items: local, source: 'db' });
     const remote = await listCloudinaryResources();
-    const items = (remote.resources ?? []).map((resource) => ({
+    const items = (remote.resources ?? []).map((resource: {
+      public_id: string;
+      url: string;
+      secure_url: string;
+      resource_type: string;
+      format?: string;
+      bytes?: number;
+      width?: number;
+      height?: number;
+      folder?: string;
+      created_at?: string;
+    }) => ({
       id: resource.public_id,
       publicId: resource.public_id,
       url: resource.url,

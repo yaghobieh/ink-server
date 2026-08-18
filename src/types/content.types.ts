@@ -12,6 +12,23 @@ export type CmsContentRecord = {
   updatedAt: string;
 };
 
+export type ContentCollectionCount = {
+  name: string;
+  count: number;
+  published: number;
+  draft: number;
+};
+
+export type ContentStats = {
+  total: number;
+  published: number;
+  draft: number;
+  archived: number;
+  docs: number;
+  templates: number;
+  collections: ContentCollectionCount[];
+};
+
 export type CmsMediaRecord = {
   id: string;
   publicId: string;
