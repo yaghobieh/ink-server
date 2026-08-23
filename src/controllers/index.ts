@@ -13,3 +13,4 @@ export * from './payments.controller.js';
 export * from './plans.controller.js';
 export * from './publicDocs.controller.js';
 export * from './usage.controller.js';
+export * from './Version/index.js';
