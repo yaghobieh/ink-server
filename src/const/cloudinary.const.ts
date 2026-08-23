@@ -1,0 +1,11 @@
+export const CLOUDINARY_FOLDER = 'ink-cms';
+export const CLOUDINARY_URL_PREFIX = 'CLOUDINARY_URL=';
+export const CLOUDINARY_URL_SCHEME = 'cloudinary://';
+export const CLOUDINARY_MISSING_CLOUD_NAME = 'cloudName';
+export const CLOUDINARY_MISSING_API_KEY = 'apiKey';
+export const CLOUDINARY_MISSING_API_SECRET = 'apiSecret';
+export const CLOUDINARY_ERROR_NOT_CONFIGURED = 'cloudinary not configured';
+export const MEDIA_UPLOAD_DATA_URL_KEY = 'dataUrl';
+export const MEDIA_UPLOAD_FILE_NAME_KEY = 'fileName';
+export const DATA_URL_PREFIX = 'data:';
+export const MEDIA_RESOURCE_TYPE_IMAGE = 'image';

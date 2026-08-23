@@ -17,3 +17,6 @@ export const POSTGRES_DEFAULT_PORT = 5432;
 export const MONGO_DEFAULT_PORT = 27017;
 export const WEEK_DAY_COUNT = 7;
 export const MS_PER_DAY = 86400000;
+export const MEDIA_MAX_BYTES = 8388608;
+export const HTTP_STATUS_SERVICE_UNAVAILABLE = 503;
+export const HTTP_STATUS_CREATED = 201;

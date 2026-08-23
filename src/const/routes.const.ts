@@ -19,6 +19,7 @@ export const API = {
   CMS_CONTENT_COLLECTION: '/api/cms/content/:collection',
   CMS_MEDIA: '/api/cms/media',
   CMS_MEDIA_SIGN: '/api/cms/media/sign',
+  CMS_MEDIA_UPLOAD: '/api/cms/media/upload',
   CMS_PLANS: '/api/cms/plans',
   CMS_USERS: '/api/cms/users',
   CMS_ROLES: '/api/cms/roles',

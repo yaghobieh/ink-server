@@ -1,7 +1,26 @@
 import type { FastifyReply, FastifyRequest } from 'fastify';
+import {
+  CLOUDINARY_ERROR_NOT_CONFIGURED,
+  CLOUDINARY_FOLDER,
+  DATA_URL_PREFIX,
+  HTTP_STATUS_BAD_REQUEST,
+  HTTP_STATUS_CREATED,
+  HTTP_STATUS_NOT_FOUND,
+  HTTP_STATUS_SERVICE_UNAVAILABLE,
+  HTTP_STATUS_UNAUTHORIZED,
+  MEDIA_MAX_BYTES,
+  MEDIA_RESOURCE_TYPE_IMAGE,
+  MEDIA_UPLOAD_DATA_URL_KEY,
+  MEDIA_UPLOAD_FILE_NAME_KEY,
+} from '../const/index.js';
 import { getAuthUser } from '../plugins/auth.plugin.js';
 import { listMedia, upsertMedia } from '../repositories/media.repository.js';
-import { createUploadSignature, listCloudinaryResources } from '../services/cloudinary.service.js';
+import {
+  cloudinaryMissingFields,
+  createUploadSignature,
+  listCloudinaryResources,
+  uploadDataUrl,
+} from '../services/cloudinary.service.js';
 import { findUserByEmail } from '../services/auth.service.js';
 import { userCanManagePlans } from '../utils/user.utils.js';
 
@@ -85,4 +104,47 @@ export const postCmsMedia = async (request: FastifyRequest, reply: FastifyReply)
     folder: typeof body.folder === 'string' ? body.folder : 'ink-cms',
   });
   return reply.code(201).send({ item });
+};
+
+export const postCmsMediaUpload = async (request: FastifyRequest, reply: FastifyReply) => {
+  const auth = getAuthUser(request);
+  if (!auth?.email) {
+    return reply.code(HTTP_STATUS_UNAUTHORIZED).send({ error: 'unauthorized' });
+  }
+  const user = await findUserByEmail(auth.email);
+  if (!user) {
+    return reply.code(HTTP_STATUS_NOT_FOUND).send({ error: 'not found' });
+  }
+  const body = (request.body ?? {}) as Record<string, unknown>;
+  const dataUrl =
+    typeof body[MEDIA_UPLOAD_DATA_URL_KEY] === 'string' ? body[MEDIA_UPLOAD_DATA_URL_KEY] : '';
+  const fileName =
+    typeof body[MEDIA_UPLOAD_FILE_NAME_KEY] === 'string' ? body[MEDIA_UPLOAD_FILE_NAME_KEY] : undefined;
+  if (!dataUrl.startsWith(DATA_URL_PREFIX)) {
+    return reply.code(HTTP_STATUS_BAD_REQUEST).send({ error: 'dataUrl required' });
+  }
+  const approxBytes = Math.ceil((dataUrl.length * 3) / 4);
+  if (approxBytes > MEDIA_MAX_BYTES) {
+    return reply.code(HTTP_STATUS_BAD_REQUEST).send({ error: 'file too large' });
+  }
+  try {
+    const uploaded = await uploadDataUrl({ dataUrl, fileName });
+    const item = await upsertMedia({
+      publicId: uploaded.public_id,
+      url: uploaded.url || uploaded.secure_url,
+      secureUrl: uploaded.secure_url,
+      resourceType: uploaded.resource_type || MEDIA_RESOURCE_TYPE_IMAGE,
+      format: uploaded.format ?? null,
+      bytes: uploaded.bytes ?? 0,
+      width: uploaded.width ?? null,
+      height: uploaded.height ?? null,
+      folder: uploaded.folder || CLOUDINARY_FOLDER,
+    });
+    return reply.code(HTTP_STATUS_CREATED).send({ item });
+  } catch {
+    return reply.code(HTTP_STATUS_SERVICE_UNAVAILABLE).send({
+      error: CLOUDINARY_ERROR_NOT_CONFIGURED,
+      missing: cloudinaryMissingFields(),
+    });
+  }
 };

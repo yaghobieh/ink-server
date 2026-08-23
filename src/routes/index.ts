@@ -26,6 +26,7 @@ import {
   postCmsRole,
   postCmsUser,
   postCmsMedia,
+  postCmsMediaUpload,
   postCmsPage,
   postInstall,
   postPages,
@@ -88,6 +89,7 @@ export const registerRoutes = (app: FastifyInstance): void => {
   app.get(API.CMS_MEDIA, { preHandler: authenticate }, getCmsMedia);
   app.get(API.CMS_MEDIA_SIGN, { preHandler: authenticate }, getCmsMediaSign);
   app.post(API.CMS_MEDIA, { preHandler: authenticate }, postCmsMedia);
+  app.post(API.CMS_MEDIA_UPLOAD, { preHandler: authenticate }, postCmsMediaUpload);
   app.get(API.CMS_PLANS, { preHandler: authenticate }, getCmsPlans);
   app.patch(API.CMS_PLANS, { preHandler: authenticate }, patchCmsPlan);
   app.get(API.CMS_USERS, { preHandler: authenticate }, getCmsUsers);
