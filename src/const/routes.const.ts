@@ -1,5 +1,7 @@
 export const API = {
   HEALTH: '/api/health',
+  VERSION: '/api/version',
+  VERSION_V1: '/api/v1/version',
   AUTH_LOGIN: '/api/auth/login',
   AUTH_REGISTER: '/api/auth/register',
   AUTH_ME: '/api/auth/me',
@@ -19,7 +21,15 @@ export const API = {
   CMS_CONTENT_COLLECTION: '/api/cms/content/:collection',
   CMS_MEDIA: '/api/cms/media',
   CMS_MEDIA_SIGN: '/api/cms/media/sign',
+  CMS_MEDIA_UPLOAD: '/api/cms/media/upload',
   CMS_PLANS: '/api/cms/plans',
+  CMS_USERS: '/api/cms/users',
+  CMS_ROLES: '/api/cms/roles',
+  CMS_ROLE: '/api/cms/roles/:id',
   PUBLIC_DOCS: '/api/public/docs',
   PUBLIC_DOCS_SLUG: '/api/public/docs/:slug',
+  PAGES: '/api/pages',
+  PAGES_ALIAS: '/pages',
+  INSTALL: '/api/install',
+  INSTALL_STATUS: '/api/install/status',
 } as const;

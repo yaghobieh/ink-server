@@ -101,8 +101,10 @@ npm run db:init
 
 ## Deploy (Vercel BE + FE)
 
-1. **Portal (FE):** Vercel project → root `ink-portal`, deploy **only** `main`/`master`.
-2. **API (BE):** Vercel project → root `ink-server`, Node runtime. Env: `DATABASE_URL`, `JWT_SECRET`, OAuth secrets, `CORS_ORIGIN=https://inkforgejs.com`.
+1. **Portal (FE):** Vercel project → root `ink-portal`. Deploys `main`/`master` and CMS integration `feature/1.1.7-cms-real`.
+2. **API (BE):** Vercel project → root `ink-server`, Node runtime. Env: `DATABASE_URL`, `JWT_SECRET`, OAuth secrets, `CORS_ORIGIN=https://inkforgejs.com,https://cms.inkforgejs.com`.
 3. Point portal `VITE_INK_API_URL` at the BE deployment URL.
 
-Release flow: merge `release/*` → `main` to ship FE; same for BE when API is ready.
+CMS work stays on `feature/1.1.7-cms-real` until a real release. Ticket branches: `{feature|bug}/{PROJECT}-{n}` (e.g. `feature/INK-26`). `{PROJECT}` is the Jira board key.
+
+Release flow: merge `release/*` → `main` to ship FE; same for BE when API is ready. Do not merge CMS WIP into `main` mid-sprint.

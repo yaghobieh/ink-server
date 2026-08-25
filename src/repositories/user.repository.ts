@@ -95,12 +95,18 @@ export const createPasswordUser = async (input: {
   name: string;
   passwordHash: string;
   username?: string;
+  role?: UserRole;
+  plan?: InkPlan;
+  provider?: string;
 }): Promise<InkUserRecord> => {
   const sql = getSql();
   const username = input.username ?? null;
+  const role = input.role ?? 'user';
+  const plan = input.plan ?? 'free';
+  const provider = input.provider ?? 'password';
   const rows = await sql`
-    INSERT INTO users (email, name, username, password_hash, provider)
-    VALUES (${input.email}, ${input.name}, ${username}, ${input.passwordHash}, 'password')
+    INSERT INTO users (email, name, username, password_hash, provider, role)
+    VALUES (${input.email}, ${input.name}, ${username}, ${input.passwordHash}, ${provider}, ${role})
     RETURNING id, email, name, username, password_hash, role, provider, provider_id, created_at
   `;
   const userRow = firstRow<Omit<UserRow, 'plan'>>(rows);
@@ -109,9 +115,9 @@ export const createPasswordUser = async (input: {
   }
   await sql`
     INSERT INTO plans (user_id, plan)
-    VALUES (${userRow.id}, 'free')
+    VALUES (${userRow.id}, ${plan})
   `;
-  return mapUser({ ...userRow, plan: 'free' });
+  return mapUser({ ...userRow, plan });
 };
 
 export const createOAuthUser = async (input: {

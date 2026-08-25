@@ -32,6 +32,12 @@ const mapMedia = (row: MediaRow): CmsMediaRecord => ({
   createdAt: toIso(row.created_at),
 });
 
+export const countMedia = async (): Promise<number> => {
+  const sql = getSql();
+  const rows = await sql`SELECT COUNT(*)::int AS count FROM cms_media`;
+  return Number(firstRow<{ count: number }>(rows)?.count ?? 0);
+};
+
 export const listMedia = async (): Promise<CmsMediaRecord[]> => {
   const sql = getSql();
   const rows = await sql`

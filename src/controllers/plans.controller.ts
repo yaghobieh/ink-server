@@ -3,6 +3,7 @@ import {
   PLAN_CAPABILITIES,
   PLAN_LICENSE_FEATURES,
   PLAN_MONTHLY_TOKEN_LIMIT,
+  PLAN_SITES_LIMIT,
 } from '../const/plans.const.js';
 import { getAuthUser } from '../plugins/auth.plugin.js';
 import { listContent } from '../repositories/content.repository.js';
@@ -37,6 +38,7 @@ export const getCmsPlans = async (request: FastifyRequest, reply: FastifyReply) 
       portalTier: capability.portalTier,
       aiMode: capability.aiMode,
       monthlyTokenLimit: PLAN_MONTHLY_TOKEN_LIMIT[plan],
+      sitesLimit: PLAN_SITES_LIMIT[plan],
       licenseFeatures: PLAN_LICENSE_FEATURES[plan],
       price: PRICE[plan],
       payload: fromDb?.payload ?? {},

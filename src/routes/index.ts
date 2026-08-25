@@ -13,13 +13,25 @@ import {
   getCmsPlans,
   getEntitlements,
   getHealth,
+  getVersion,
   getPublicDocBySlug,
   getPublicDocs,
   getUsage,
+  getInstallStatusHandler,
+  getPages,
+  getCmsRoles,
+  getCmsUsers,
   patchCmsPlan,
+  patchCmsRole,
   postCmsContent,
+  postCmsRole,
+  postCmsUser,
   postCmsMedia,
+  postCmsMediaUpload,
   postCmsPage,
+  postInstall,
+  postPages,
+  deletePages,
   postUsage,
   putCmsPage,
   setEntitlements,
@@ -37,9 +49,21 @@ import { advisePayments } from '../controllers/payments.controller.js';
 
 export const registerRoutes = (app: FastifyInstance): void => {
   app.get(API.HEALTH, getHealth);
+  app.get(API.VERSION, getVersion);
+  app.get(API.VERSION_V1, getVersion);
 
   app.get(API.PUBLIC_DOCS, getPublicDocs);
   app.get(API.PUBLIC_DOCS_SLUG, getPublicDocBySlug);
+
+  app.get(API.PAGES, getPages);
+  app.get(API.PAGES_ALIAS, getPages);
+  app.post(API.PAGES, { preHandler: authenticate }, postPages);
+  app.post(API.PAGES_ALIAS, { preHandler: authenticate }, postPages);
+  app.delete(API.PAGES, { preHandler: authenticate }, deletePages);
+  app.delete(API.PAGES_ALIAS, { preHandler: authenticate }, deletePages);
+
+  app.post(API.INSTALL, postInstall);
+  app.get(API.INSTALL_STATUS, getInstallStatusHandler);
 
   app.post(API.AUTH_REGISTER, register);
   app.post(API.AUTH_LOGIN, login);
@@ -68,8 +92,14 @@ export const registerRoutes = (app: FastifyInstance): void => {
   app.get(API.CMS_MEDIA, { preHandler: authenticate }, getCmsMedia);
   app.get(API.CMS_MEDIA_SIGN, { preHandler: authenticate }, getCmsMediaSign);
   app.post(API.CMS_MEDIA, { preHandler: authenticate }, postCmsMedia);
+  app.post(API.CMS_MEDIA_UPLOAD, { preHandler: authenticate }, postCmsMediaUpload);
   app.get(API.CMS_PLANS, { preHandler: authenticate }, getCmsPlans);
   app.patch(API.CMS_PLANS, { preHandler: authenticate }, patchCmsPlan);
+  app.get(API.CMS_USERS, { preHandler: authenticate }, getCmsUsers);
+  app.post(API.CMS_USERS, { preHandler: authenticate }, postCmsUser);
+  app.get(API.CMS_ROLES, { preHandler: authenticate }, getCmsRoles);
+  app.post(API.CMS_ROLES, { preHandler: authenticate }, postCmsRole);
+  app.patch(API.CMS_ROLE, { preHandler: authenticate }, patchCmsRole);
 
   app.post(API.PAYMENTS_AI, advisePayments);
 

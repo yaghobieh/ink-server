@@ -93,6 +93,7 @@ const run = async () => {
         portalTier: capability.portalTier,
         aiMode: capability.aiMode,
         monthlyTokenLimit: PLAN_MONTHLY_TOKEN_LIMIT[plan],
+        sitesLimit: capability.sitesLimit,
         licenseFeatures: PLAN_LICENSE_FEATURES[plan],
         price:
           plan === 'free'
