@@ -1,5 +1,8 @@
 import 'dotenv/config';
+import { resolveCloudinaryCredentials } from '../utils/cloudinaryName.utils.js';
 import { DEFAULT_PORT } from './numbers.const.js';
+
+const cloudinaryCredentials = resolveCloudinaryCredentials();
 
 const splitOrigins = (value: string): string[] =>
   value
@@ -24,9 +27,9 @@ export const CONFIG = {
   PUBLIC_API_BASE: process.env.PUBLIC_API_BASE ?? 'https://cms.inkforgejs.com',
   CMS_PUBLIC_URL: process.env.CMS_PUBLIC_URL ?? 'https://cms.inkforgejs.com',
   OPENAI_API_KEY: process.env.OPENAI_API_KEY ?? '',
-  CLOUDINARY_CLOUD_NAME: process.env.CLOUDINARY_CLOUD_NAME ?? '',
-  CLOUDINARY_API_KEY: process.env.CLOUDINARY_API_KEY ?? '',
-  CLOUDINARY_API_SECRET: process.env.CLOUDINARY_API_SECRET ?? '',
+  CLOUDINARY_CLOUD_NAME: cloudinaryCredentials.cloudName,
+  CLOUDINARY_API_KEY: cloudinaryCredentials.apiKey,
+  CLOUDINARY_API_SECRET: cloudinaryCredentials.apiSecret,
   SEED_ADMIN_USERNAME: process.env.SEED_ADMIN_USERNAME ?? 'yaghobieh',
   SEED_ADMIN_PASSWORD: process.env.SEED_ADMIN_PASSWORD ?? 'admin123',
   SEED_ADMIN_EMAIL: process.env.SEED_ADMIN_EMAIL ?? 'yaghobieh@ink.local',

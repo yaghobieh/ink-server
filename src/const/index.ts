@@ -1,3 +1,4 @@
+export * from './cloudinary.const.js';
 export * from './cms.const.js';
 export * from './crew.const.js';
 export * from './config.const.js';
