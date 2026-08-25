@@ -13,6 +13,7 @@ import {
   getCmsPlans,
   getEntitlements,
   getHealth,
+  getVersion,
   getPublicDocBySlug,
   getPublicDocs,
   getUsage,
@@ -47,6 +48,8 @@ import { advisePayments } from '../controllers/payments.controller.js';
 
 export const registerRoutes = (app: FastifyInstance): void => {
   app.get(API.HEALTH, getHealth);
+  app.get(API.VERSION, getVersion);
+  app.get(API.VERSION_V1, getVersion);
 
   app.get(API.PUBLIC_DOCS, getPublicDocs);
   app.get(API.PUBLIC_DOCS_SLUG, getPublicDocBySlug);

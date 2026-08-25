@@ -1,5 +1,7 @@
 export const API = {
   HEALTH: '/api/health',
+  VERSION: '/api/version',
+  VERSION_V1: '/api/v1/version',
   AUTH_LOGIN: '/api/auth/login',
   AUTH_REGISTER: '/api/auth/register',
   AUTH_ME: '/api/auth/me',

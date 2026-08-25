@@ -1,3 +1,4 @@
+export const NUMBER_ZERO = 0;
 export const DEFAULT_PORT = 4000;
 export const JWT_EXPIRES_IN_SEC = 60 * 60 * 24 * 7;
 export const AI_PLAN_MONTHLY_TOKEN_LIMIT = 100_000;

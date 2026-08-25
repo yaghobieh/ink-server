@@ -8,3 +8,4 @@ export * from './pages.const.js';
 export * from './plans.const.js';
 export * from './routes.const.js';
 export * from './strings.const.js';
+export * from './version.const.js';
